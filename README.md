@@ -1,3 +1,9 @@
+# DL-DIY potential project ideas
+
+- read the paper and understand the approach
+- reproduce the results with simple datasets
+- try to make it work with MNIST
+
 # tiny-diffusion
 
 A minimal PyTorch implementation of probabilistic diffusion models for 2D datasets. Get started by running `python ddpm.py -h` to explore the available options for training.
