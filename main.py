@@ -12,7 +12,7 @@ from torchvision import transforms
 from tqdm.auto import tqdm
 
 from UNet import MyUNet, MyTinyUNet
-from projet.ddpm import DDPM
+from ddpm import DDPM
 from ddpm_cold import MedianBlur, ConvolutionBlur, SuperResolution
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -198,9 +198,11 @@ if __name__ == "__main__":
         num_epochs = 50
         num_timesteps = 30
         num_timesteps_generate = 25
-        kernel = 1/9*np.array([[1, 1, 1],[1, 1, 1],[1, 1, 1]])
+        # Here we can choose the kernel
+        kernel = 1/9*np.array([[1, 1, 1],[1, 1, 1],[1, 1, 1]]) # Mean kernel
+        # kernel = 1/16*np.array([[1, 2, 1],[2, 4, 2],[1, 2, 1]]) # Gaussian kernel
 
-        network = MyUNet()
+        network = MyTinyUNet()
         model = ConvolutionBlur(network, num_timesteps, num_timesteps_generate, kernel, device=device)
         optimizer = torch.optim.AdamW(network.parameters(), lr=learning_rate)
         training_loop_cold(model, dataloader, optimizer, num_epochs, num_timesteps, device=device)
