@@ -174,9 +174,9 @@ if __name__ == "__main__":
         show_images(generated, "Final result")
 
     if config.experiment_name == "cold_median":
-        num_epochs = 50
-        num_timesteps = 30
-        num_timesteps_generate = 25
+        num_epochs = 100
+        num_timesteps = 100
+        num_timesteps_generate = 100
         kernel_size = 3
 
         network = MyUNet()
