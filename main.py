@@ -12,6 +12,7 @@ from torchvision import transforms
 from tqdm.auto import tqdm
 
 from UNet import MyUNet, MyTinyUNet
+from UNet_conditional import UNet_conditional
 from ddpm import DDPM
 from ddpm_cold import MedianBlur, ConvolutionBlur, SuperResolution
 
@@ -34,6 +35,34 @@ def training_loop(model, dataloader, optimizer, num_epochs, num_timesteps, devic
 
             noisy = model.add_noise(batch, noise, timesteps)
             noise_pred = model.reverse(noisy, timesteps)
+            loss = F.mse_loss(noise_pred, noise)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            progress_bar.update(1)
+            logs = {"loss": loss.detach().item(), "step": global_step}
+            losses.append(loss.detach().item())
+            progress_bar.set_postfix(**logs)
+            global_step += 1
+        progress_bar.close()
+
+def training_loop_conditional(model, dataloader, optimizer, num_epochs, num_timesteps, nb_classes=10, device=device):
+    global_step = 0
+    losses = []
+    
+    for epoch in range(num_epochs):
+        model.train()
+        progress_bar = tqdm(total=len(dataloader))
+        progress_bar.set_description(f"Epoch {epoch}")
+        for step, (images, labels) in enumerate(dataloader):
+            images = images.to(device)
+            labels = labels.to(device)
+            noise = torch.randn(images.shape).to(device)
+            timesteps = torch.randint(0, num_timesteps, (images.shape[0],)).long().to(device)
+
+            noisy = model.add_noise(images, noise, timesteps)
+            noise_pred = model.reverse(noisy, timesteps, labels)
             loss = F.mse_loss(noise_pred, noise)
             optimizer.zero_grad()
             loss.backward()
@@ -100,6 +129,28 @@ def generate_image(ddpm, sample_size, channel, height, width):
             frames.append(sample[i].detach().cpu().numpy())
     return frames, frames_mid
 
+def generate_image_conditional(ddpm, labels, sample_size, channel, height, width):
+
+    frames = []
+    frames_mid = []
+    with torch.no_grad():
+        timesteps = list(range(ddpm.num_timesteps))[::-1]
+        sample = torch.randn(sample_size, channel, height, width).to(device)
+        
+        for i, t in enumerate(tqdm(timesteps)):
+            time_tensor = (torch.ones(sample_size, 1) * t).long().to(device)
+            predicted_noise = ddpm.reverse(sample, time_tensor, labels).to(device)
+            sample = ddpm.step(predicted_noise, time_tensor[0], sample)
+
+            if t==500:
+                sample_squeezed = torch.squeeze(sample)
+                for i in range(sample_size):
+                    frames_mid.append(sample_squeezed[i].detach().cpu().numpy())
+
+        sample = torch.squeeze(sample)
+        for i in range(sample_size):
+            frames.append(sample[i].detach().cpu().numpy())
+    return frames, frames_mid
 
 def generate_image_cold(model, images, algoindex):
     """Generate the image from the final blured image"""
@@ -169,6 +220,18 @@ if __name__ == "__main__":
         model = DDPM(network, num_timesteps, beta_start=0.0001, beta_end=0.02, device=device)
         optimizer = torch.optim.AdamW(network.parameters(), lr=learning_rate)
         training_loop(model, dataloader, optimizer, num_epochs, num_timesteps, device=device)
+        generated, generated_mid = generate_image(model, 100, 1, 28, 28)
+        show_images(generated_mid, "Mid result")
+        show_images(generated, "Final result")
+
+    if config.experiment_name == "ddpm_conditional":
+        num_epochs = 200
+        num_timesteps = 1000
+        network = UNet_conditional()
+        model = DDPM(network, num_timesteps, beta_start=0.0001, beta_end=0.02, device=device)
+        optimizer = torch.optim.AdamW(network.parameters(), lr=learning_rate)
+        training_loop(model, dataloader, optimizer, num_epochs, num_timesteps, device=device)
+        labels = torch.arange(10).long().to(device).repeat(10)
         generated, generated_mid = generate_image(model, 100, 1, 28, 28)
         show_images(generated_mid, "Mid result")
         show_images(generated, "Final result")
