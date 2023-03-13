@@ -3,15 +3,19 @@
 - We conducted a series of experiments on the MNIST dataset, including  ddpm and conditional ddpm, as well as cold diffusion and score based model.
 - You can run the main.py with command("ddpm/ddpm_conditional/cold_median/cold_kernel/cold_resolution/score/sde") to see our results of experiments.
 
-# DDPM and DDPM Condtional
+## DDPM and DDPM Condtional
 
 We use U-NET to generate a new image based on the image after adding noise
 
-# Cold Diffusion
+![](results/Cond_fin.png)
+
+## Cold Diffusion
 
 We tried three deterministic operations, adding median blur, mean blur and masking part of the image.
 
-# Score based model
+![](results/Median_2.png)
+
+## Score based model
 
 This illustration shows how the reverse process recovers the distribution of the training data.
 
