@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from UNet import MyUNet
+from unet.UNet import MyUNet
 class UNet_conditional(MyUNet):
     def __init__(self, n_steps=1000, time_emb_dim=100, nb_classes=None):
         super().__init__(n_steps, time_emb_dim)
