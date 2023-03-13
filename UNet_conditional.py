@@ -9,6 +9,7 @@ class UNet_conditional(MyUNet):
 
     def forward(self, x, t, y=None):
         t = self.time_embed(t)
+        t = torch.squeeze(t)
 
         if y is not None:
             t += self.label_emb(y)
