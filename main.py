@@ -225,7 +225,7 @@ def generate_image_cold(model, images, algoindex):
             frames.append(blured[i].detach().cpu().numpy())
     return frames
 
-def show_images(images, title="",pixel=28):
+def show_images(images, title="", pixel=28, channel=1):
     """Shows the provided images as sub-pictures in a square"""
 
     # Converting images to CPU numpy arrays
@@ -244,7 +244,7 @@ def show_images(images, title="",pixel=28):
             fig.add_subplot(rows, cols, idx + 1)
 
             if idx < len(images):
-                plt.imshow(images[idx].reshape(pixel, pixel, 1), cmap="gray")
+                plt.imshow(images[idx].reshape(pixel, pixel, channel))
                 idx += 1
     fig.suptitle(title, fontsize=30)
     # Showing the figure

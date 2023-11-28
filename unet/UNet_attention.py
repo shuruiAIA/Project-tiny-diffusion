@@ -63,7 +63,7 @@ class MyUNetattention(nn.Module):
             MyBlock((64, H//4, W//4), 64, 64)
         )
         self.down3 = nn.Sequential(
-            nn.Conv2d(64, 64, 3, 1, 1),
+            nn.Conv2d(64, 64, 4, 2, 1),
             nn.SiLU(),
             nn.Conv2d(64, 64, 4, 2, 1)
         )
@@ -71,17 +71,17 @@ class MyUNetattention(nn.Module):
         # Bottleneck
         self.te_mid = self._make_te(time_emb_dim, 64)
         self.b_mid = nn.Sequential(
-            MyBlock((64, H//8, W//8), 64, 32),
-            MyBlock((32, H//8, W//8), 32, 32),
+            MyBlock((64, H//16, W//16), 64, 32),
+            MyBlock((32, H//16, W//16), 32, 32),
             AttentionBlock(32, num_heads=2),
-            MyBlock((32, H//8, W//8), 32, 64)
+            MyBlock((32, H//16, W//16), 32, 64)
         )
 
         # Second half
         self.up1 = nn.Sequential(
             nn.ConvTranspose2d(64, 64, 4, 2, 1),
             nn.SiLU(),
-            nn.ConvTranspose2d(64, 64, 3, 1, 1)
+            nn.ConvTranspose2d(64, 64, 4, 2, 1)
         )
 
         self.te4 = self._make_te(time_emb_dim, 128)
@@ -107,7 +107,7 @@ class MyUNetattention(nn.Module):
             MyBlock((16, H, W), 16, 16, normalize=False)
         )
 
-        self.conv_out = nn.Conv2d(16, 1, 3, 1, 1)
+        self.conv_out = nn.Conv2d(16, 3, 3, 1, 1)
 
     def forward(self, x, t):
  
